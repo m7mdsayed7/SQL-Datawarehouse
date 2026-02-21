@@ -1,13 +1,13 @@
 /*
-Create SQL Server Agent job to run bronze.load_bronze every day at 04:00 AM.
+Create SQL Server Agent job to run silver.load_silver every day at 04:00 AM.
 Run this script in `msdb` context (or in SSMS) as a login with permission to create Agent jobs.
 */
 USE msdb;
 GO
 
 -- Job name
-DECLARE @job_name SYSNAME = N'bronze.load_bronze_daily';
-DECLARE @schedule_name SYSNAME = N'bronze.load_bronze_4am_daily';
+DECLARE @job_name SYSNAME = N'silver.load_silver_daily';
+DECLARE @schedule_name SYSNAME = N'silver.load_silver_7am_daily';
 DECLARE @database_name SYSNAME = N'DataWarehouse'; 
 DECLARE @owner_login_var SYSNAME = SUSER_SNAME();
 
@@ -20,24 +20,24 @@ BEGIN
     EXEC msdb.dbo.sp_add_job
         @job_name = @job_name,
         @enabled = 1,
-        @description = N'Runs bronze.load_bronze daily at 04:00 AM',
+        @description = N'Runs silver.load_silver daily at 07:00 AM',
         @owner_login_name = @owner_login_var;
 
     EXEC msdb.dbo.sp_add_jobstep
         @job_name = @job_name,
-        @step_name = N'Execute bronze.load_bronze',
+        @step_name = N'Execute silver.load_silver',
         @subsystem = N'TSQL',
-        @command = N'EXEC bronze.load_bronze;',
+        @command = N'EXEC silver.load_silver;',
         @database_name = @database_name,
         @on_success_action = 1; -- quit with success
 
-    -- Create daily schedule at 04:00:00
+    -- Create daily schedule at 07:00:00
     EXEC msdb.dbo.sp_add_schedule
         @schedule_name = @schedule_name,
         @enabled = 1,
         @freq_type = 4,         -- daily
         @freq_interval = 1,     -- every day
-        @active_start_time = 40000; -- 04:00:00
+        @active_start_time = 070000; -- 07:00:00
 
     EXEC msdb.dbo.sp_attach_schedule
         @job_name = @job_name,
@@ -52,4 +52,4 @@ END
 
 
 -- To remove the job later use (run in msdb):
--- EXEC msdb.dbo.sp_delete_job @job_name = N'bronze.load_bronze_daily';
+-- EXEC msdb.dbo.sp_delete_job @job_name = N'silver.load_silver_daily';
